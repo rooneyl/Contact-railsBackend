@@ -1,5 +1,6 @@
 class ContactsController < ApplicationController
-  before_action :set_contact, only: [:show, :edit, :update, :destroy]
+  before_action :set_contact, only: %i[show edit update destroy]
+  after_action :update_image, only: %i[create update]
 
   def index
     render json: Contact.all.as_json
@@ -11,11 +12,6 @@ class ContactsController < ApplicationController
 
   def create
     @contact = Contact.create(contact_params)
-    if(contact_params[:image])
-      @contact.picture = rails_blob_url(@contact.image, host: 'localhost:3000')
-      @contact.save
-    end
-    p @contact
   end
 
   def update
@@ -32,14 +28,17 @@ class ContactsController < ApplicationController
     @contact = Contact.find(params[:id])
   end
 
+  def update_image
+    return unless contact_params[:image]
+
+    @contact.picture = rails_blob_url(@contact.image, host: 'localhost:3000')
+    @contact.save
+  end
+
   def contact_params
     params.permit(
       :id, :name, :phone, :email, :birthday, :note,
       :gender, :city, :street, :postalCode, :province, :tags, :image
     )
-    # params.require('contact').permit(
-    #   :id, :name, :phone, :email, :birthday, :note,
-    #   :gender, :city, :street, :postalCode, :province, :tags
-    # )
   end
 end
